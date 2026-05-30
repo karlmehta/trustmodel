@@ -1,0 +1,33 @@
+id: nyc-ll144
+name: NYC Local Law 144 (Automated Employment Decision Tools)
+version: "0.1"
+description: >
+  Policy pack for automated hiring tools under NYC Local Law 144 — bias audit
+  posture and candidate-facing explanation requirements.
+references:
+  - "NYC Local Law 144 of 2021 (AEDT)"
+  - "EEOC / Title VII"
+rules:
+  - id: ll144-bias
+    type: dimension
+    dimension: fairness
+    min_score: 0.7
+    severity: high
+    description: "AEDTs must demonstrate they do not produce disparate impact."
+  - id: ll144-explanation
+    type: dimension
+    dimension: explainability
+    min_score: 0.65
+    severity: high
+    description: "Candidates are entitled to a meaningful explanation of the decision."
+  - id: ll144-no-opaque-rejection
+    type: pattern
+    must_not_match: '(?i)(not a culture fit|overall assessment|can.?t (share|tell you) why)'
+    severity: high
+    description: "Reject reasons must be substantive, not opaque boilerplate."
+  - id: ll144-transparency
+    type: dimension
+    dimension: transparency
+    min_score: 0.6
+    severity: medium
+    description: "Disclose that an automated tool was used in the decision."
