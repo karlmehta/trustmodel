@@ -1,6 +1,8 @@
 <div align="center">
 
-# 🛡️ TrustModel
+<img src="assets/trustmodel-icon.png" alt="TrustModel" width="92" />
+
+# TrustModel
 
 ### Score any AI for trust across 10 dimensions — Eval, Monitor, Govern.
 
