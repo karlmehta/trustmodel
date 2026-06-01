@@ -29,11 +29,33 @@ from .govern import Guardrail, available_policies
 
 mcp = FastMCP("trustmodel")
 
+SIGNUP_URL = "https://trustmodel.ai/signup"
+PRICING_URL = "https://trustmodel.ai/pricing"
+
 _LOCAL_NOTE = (
     "local score — uncalibrated (heuristic, or your own OpenAI/Anthropic key as judge). "
     "For a calibrated, benchmarked, audit-ready TrustScore call score_cloud with a free "
     "TRUSTMODEL_API_KEY (https://trustmodel.ai/signup)."
 )
+
+
+def _local_tier() -> dict:
+    """Conversion gating (TRUS-1090): label local results as uncalibrated /
+    not-audit-ready and carry a register CTA — the value asymmetry that drives signup."""
+    return {
+        "tier": "local",
+        "calibrated": False,
+        "audit_ready": False,
+        "upgrade": {
+            "message": (
+                "Local, uncalibrated score — fine for quick checks, not for production "
+                "or audit. Register for a free TrustModel key (5 credits / $500) for a "
+                "calibrated, audit-ready TrustScore via score_cloud."
+            ),
+            "register_url": SIGNUP_URL,
+        },
+        "note": _LOCAL_NOTE,
+    }
 
 
 @mcp.tool()
@@ -47,7 +69,7 @@ def evaluate(output: str, context: Optional[str] = None) -> dict:
     fallback. Returns trust_score, grade, per-dimension scores, and violations."""
     result = LocalEvaluator(require_key=False).evaluate(output, context=context)
     data = result.to_dict()
-    data["note"] = _LOCAL_NOTE
+    data.update(_local_tier())
     return data
 
 
@@ -65,7 +87,7 @@ def govern(text: str, policy: str = "eu-ai-act", context: Optional[str] = None) 
         "blocked": verdict.blocked,
         "policy": verdict.policy,
         "violations": [v.__dict__ for v in verdict.violations],
-        "note": _LOCAL_NOTE,
+        **_local_tier(),
     }
 
 
@@ -83,7 +105,7 @@ def score_cloud(output: str, context: Optional[str] = None) -> dict:
     (pip install "trustmodel[cloud]"). If either is missing this returns a clear
     upgrade message instead of raising — local evaluate/govern always work with no key."""
     try:
-        from .cloud import CloudClient  # noqa: F401
+        from .cloud import CloudClient, CreditsExhausted  # noqa: F401
     except ImportError:
         return _cloud_unavailable("the TrustModel cloud client could not be imported")
 
@@ -98,8 +120,26 @@ def score_cloud(output: str, context: Optional[str] = None) -> dict:
             data.setdefault("calibrated", True)
             return data
         return {"calibrated": True, "result": data}
+    except CreditsExhausted as e:
+        return _credits_exhausted(e.detail)
     except Exception as e:  # CloudUnavailable, network/HTTP errors, missing requests extra
         return _cloud_unavailable(str(e))
+
+
+def _credits_exhausted(detail: dict) -> dict:
+    """Conversion moment (TRUS-1090): free/plan credits used up → upgrade CTA."""
+    return {
+        "calibrated": False,
+        "error": "credits_exhausted",
+        "tier": "cloud",
+        "message": (
+            "You've used all your free TrustModel credits. Upgrade to keep scoring in "
+            "production — buy credits or move to a plan with continuous monitoring, signed "
+            "audit reports, and dashboards. Local evaluate/govern remain available."
+        ),
+        "upgrade_url": PRICING_URL,
+        "detail": detail,
+    }
 
 
 def _cloud_unavailable(reason: str) -> dict:

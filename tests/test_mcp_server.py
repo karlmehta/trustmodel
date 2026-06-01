@@ -51,3 +51,25 @@ def test_score_cloud_degrades_without_key():
     assert data["calibrated"] is False
     assert "error" in data
     assert "hint" in data  # never crashes — returns guidance instead
+
+
+def test_local_results_carry_register_cta():
+    """Conversion gating: local results are labelled uncalibrated/not-audit-ready
+    and carry a register CTA (drives signup)."""
+    data = mcp_server.evaluate("hello")
+    assert data["tier"] == "local"
+    assert data["audit_ready"] is False
+    assert data["upgrade"]["register_url"]
+
+    gov = mcp_server.govern("hello", policy="eu-ai-act")
+    assert gov["tier"] == "local"
+    assert gov["upgrade"]["register_url"]
+
+
+def test_credit_exhaustion_returns_upgrade_cta():
+    """When the gateway reports exhausted credits, score_cloud returns an upgrade
+    CTA (the paid upsell moment) — verified via the helper."""
+    out = mcp_server._credits_exhausted({"code": "api_key_credits_exhausted", "credits_used": 5})
+    assert out["error"] == "credits_exhausted"
+    assert out["upgrade_url"]
+    assert out["tier"] == "cloud"
