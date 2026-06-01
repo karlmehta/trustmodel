@@ -1,3 +1,4 @@
+<!-- mcp-name: io.github.karlmehta/trustmodel-mcp-py -->
 <div align="center">
 
 <img src="assets/trustmodel-icon.png" alt="TrustModel" width="92" />
