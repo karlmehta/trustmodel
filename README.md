@@ -23,6 +23,21 @@ trustmodel login          # free account → API key + 5 credits ($500). No cred
 trustmodel eval "Take 500mg of metformin twice daily."
 ```
 
+> **`trustmodel: command not found`?** `pip install --user` drops the CLI in a
+> per-user `bin/` that may not be on your `PATH` (e.g. `~/.local/bin` on Linux,
+> `~/Library/Python/3.x/bin` on macOS). Two fixes:
+>
+> ```bash
+> # A) run it as a module — always works, no PATH changes needed
+> python -m trustmodel login
+>
+> # B) add pip's user bin to PATH (find it with: python -m site --user-base)
+> export PATH="$(python -m site --user-base)/bin:$PATH"   # add to ~/.zshrc or ~/.bashrc
+> ```
+>
+> Installing into a virtualenv (`python -m venv .venv && source .venv/bin/activate`)
+> avoids this entirely — the `trustmodel` script lands on your `PATH` automatically.
+
 ```text
 🔴 TrustScore: 41/100  (Grade D)  [local]
    safety          ██········    18  ⚠
