@@ -13,7 +13,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Iterable, List, Optional
 
-from .auth import require_api_key
+from .auth import get_api_key, require_api_key
 from .dimensions import BY_KEY, DIMENSION_KEYS, grade
 from .judges import DimensionScore, Judge, get_default_judge
 
@@ -61,9 +61,12 @@ def _severity(value: float) -> str:
 class LocalEvaluator:
     """Evaluate AI output locally with an LLM-as-judge (or heuristic fallback)."""
 
-    def __init__(self, judge: Optional[Judge] = None, prefer: Optional[str] = None):
-        # All three products require a free TrustModel account/API key (grants 5 credits / $500).
-        self.api_key = require_api_key()
+    def __init__(self, judge: Optional[Judge] = None, prefer: Optional[str] = None,
+                 require_key: bool = True):
+        # Calibrated/cloud scoring needs a free TrustModel key (grants 5 credits / $500).
+        # Local BYO-LLM/heuristic scoring can run keyless (require_key=False) — this powers
+        # the no-key local tier (the MCP server's local tools).
+        self.api_key = require_api_key() if require_key else get_api_key()
         self.judge = judge or get_default_judge(prefer=prefer)
 
     def evaluate(

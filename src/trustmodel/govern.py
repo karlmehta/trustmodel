@@ -29,7 +29,7 @@ from typing import List, Optional
 
 import yaml
 
-from .auth import require_api_key
+from .auth import get_api_key, require_api_key
 from .eval import LocalEvaluator
 
 _PACKS_DIR = Path(__file__).parent / "policy_packs"
@@ -76,9 +76,11 @@ class Guardrail:
     """Evaluate output against a policy pack and decide allow/block."""
 
     def __init__(self, policy: str = "eu-ai-act", evaluator: Optional[LocalEvaluator] = None,
-                 block_severity: str = "high"):
-        # Govern requires a free TrustModel account/API key (grants 5 credits / $500).
-        self.api_key = require_api_key()
+                 block_severity: str = "high", require_key: bool = True):
+        # Govern needs a free TrustModel key for calibrated/cloud use. Local policy
+        # checks can run keyless (require_key=False) — this powers the no-key local tier.
+        self.api_key = require_api_key() if require_key else get_api_key()
+        self._require_key = require_key
         self.policy_id = policy
         self.pack = load_policy(policy)
         self.rules = self.pack.get("rules", [])
@@ -89,7 +91,7 @@ class Guardrail:
     @property
     def evaluator(self) -> LocalEvaluator:
         if self._evaluator is None:
-            self._evaluator = LocalEvaluator()
+            self._evaluator = LocalEvaluator(require_key=self._require_key)
         return self._evaluator
 
     def check(self, output: str, context: Optional[str] = None) -> GuardrailVerdict:
