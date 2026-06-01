@@ -1,0 +1,29 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.karlmehta/trustmodel-mcp-py",
+  "description": "Python MCP server for TrustModel — local no-key TrustScore across 10 dimensions, policy-pack governance, and calibrated cloud scoring. Reuses the open-source trustmodel engine.",
+  "version": "0.2.0",
+  "repository": {
+    "url": "https://github.com/karlmehta/trustmodel",
+    "source": "github"
+  },
+  "packages": [
+    {
+      "registryType": "pypi",
+      "registryBaseUrl": "https://pypi.org",
+      "identifier": "trustmodel",
+      "version": "0.2.0",
+      "transport": {
+        "type": "stdio"
+      },
+      "environmentVariables": [
+        {
+          "name": "TRUSTMODEL_API_KEY",
+          "description": "TrustModel API key (free — 5 credits / $500 at https://trustmodel.ai/signup) for calibrated cloud scoring. Optional: local evaluate/govern/policies work without it.",
+          "isRequired": false,
+          "isSecret": true
+        }
+      ]
+    }
+  ]
+}
