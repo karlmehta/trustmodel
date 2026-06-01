@@ -184,6 +184,17 @@ Mapped to **EU AI Act, NIST AI RMF, ISO 42001, NYC Local Law 144, OWASP LLM Top 
 | Time to first result | **30 sec** | minutes | weeks |
 | Cost | free + $500 credits | free | $15k+ |
 
+## MCP server
+
+Use TrustModel from any [Model Context Protocol](https://modelcontextprotocol.io/) client (Claude Code, Cursor, Windsurf, Claude Desktop) — evaluate, score, govern, and run end-to-end agentic trace evaluation as agent tools.
+
+- **Repo:** [`karlmehta/trustmodel-mcp`](https://github.com/karlmehta/trustmodel-mcp)
+- **npm:** [`@trustmodel/mcp-server`](https://www.npmjs.com/package/@trustmodel/mcp-server)
+
+```bash
+claude mcp add trustmodel --env TRUSTMODEL_API_KEY=tm-... -- npx -y @trustmodel/mcp-server
+```
+
 ## Open core (Linux → Red Hat)
 
 This toolkit is **MIT-licensed** and free. The **calibrated hosted TrustScore**, PDF compliance
