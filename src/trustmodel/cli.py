@@ -119,6 +119,21 @@ def _cmd_monitor(args):
     return 0
 
 
+def _cmd_mcp(args):
+    try:
+        from .mcp_server import run
+    except ImportError:
+        print(
+            "The MCP server needs the 'mcp' extra:\n\n"
+            '    pip install "trustmodel[mcp]"\n\n'
+            "Then run `trustmodel mcp` (or `trustmodel-mcp`) and point your MCP client at it.",
+            file=sys.stderr,
+        )
+        return 2
+    run()
+    return 0
+
+
 def _cmd_policies(args):
     from .govern import available_policies
     print("Built-in policy packs:")
@@ -163,6 +178,9 @@ def main(argv=None):
 
     p_pol = sub.add_parser("policies", help="list built-in policy packs")
     p_pol.set_defaults(func=_cmd_policies)
+
+    p_mcp = sub.add_parser("mcp", help="run the MCP server (stdio) for MCP clients")
+    p_mcp.set_defaults(func=_cmd_mcp)
 
     args = parser.parse_args(argv)
     if not getattr(args, "command", None):

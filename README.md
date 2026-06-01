@@ -184,6 +184,49 @@ Mapped to **EU AI Act, NIST AI RMF, ISO 42001, NYC Local Law 144, OWASP LLM Top 
 | Time to first result | **30 sec** | minutes | weeks |
 | Cost | free + $500 credits | free | $15k+ |
 
+## MCP server — use TrustModel from any agent
+
+Expose Eval and Govern to any [Model Context Protocol](https://modelcontextprotocol.io/) client (Claude Code, Cursor, Claude Desktop, …). **Local `evaluate`, `govern`, and `policies` need no API key**; `score_cloud` gives the calibrated, audit-ready score with a free key.
+
+```bash
+pip install "trustmodel[mcp]"
+trustmodel-mcp        # or:  trustmodel mcp   — runs the server on stdio
+```
+
+Zero-install with [uv](https://docs.astral.sh/uv/):
+
+```bash
+uvx --from "trustmodel[mcp]" trustmodel-mcp
+```
+
+Register it with Claude Code:
+
+```bash
+claude mcp add trustmodel -- uvx --from "trustmodel[mcp]" trustmodel-mcp
+```
+
+Or add to Claude Desktop / Cursor (`claude_desktop_config.json` / `.cursor/mcp.json`):
+
+```json
+{
+  "mcpServers": {
+    "trustmodel": {
+      "command": "uvx",
+      "args": ["--from", "trustmodel[mcp]", "trustmodel-mcp"]
+    }
+  }
+}
+```
+
+| Tool | Key? | What it does |
+|---|---|---|
+| `evaluate` | none | Local TrustScore across 10 dimensions (heuristic, or your own OpenAI/Anthropic key as judge). |
+| `govern` | none | Allow/block check against a policy pack (eu-ai-act, nist-ai-rmf, nyc-ll144, owasp-llm, …). |
+| `policies` | none | List built-in policy packs. |
+| `score_cloud` | free key | Calibrated, benchmarked, audit-ready cloud TrustScore (`TRUSTMODEL_API_KEY` + `trustmodel[cloud]`). |
+
+> The `mcp` extra requires Python ≥ 3.10. There's also a TypeScript MCP server — [`@trustmodel/mcp-server`](https://www.npmjs.com/package/@trustmodel/mcp-server) ([repo](https://github.com/karlmehta/trustmodel-mcp)).
+
 ## Open core (Linux → Red Hat)
 
 This toolkit is **MIT-licensed** and free. The **calibrated hosted TrustScore**, PDF compliance
