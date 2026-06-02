@@ -1,3 +1,29 @@
+TrustModel — Dual License
+==========================
+
+The `trustmodel` distribution is dual-licensed. Different modules of the
+package are governed by different licenses, as listed below. Installing the
+package via `pip install trustmodel` constitutes acceptance of both.
+
+----------------------------------------------------------------------------
+PART A — Open Engine (MIT License)
+----------------------------------------------------------------------------
+
+The following modules are the open-source TrustModel engine and are licensed
+under the MIT License:
+
+    trustmodel/eval.py
+    trustmodel/monitor.py
+    trustmodel/govern.py
+    trustmodel/judges.py
+    trustmodel/dimensions.py
+    trustmodel/auth.py
+    trustmodel/cloud.py
+    trustmodel/cli.py
+    trustmodel/mcp_server.py
+    trustmodel/__main__.py
+    trustmodel/policy_packs/*
+
 MIT License
 
 Copyright (c) 2026 Karl Mehta / TrustModel
@@ -19,3 +45,57 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+
+----------------------------------------------------------------------------
+PART B — Cloud Client (Proprietary)
+----------------------------------------------------------------------------
+
+The following modules are the official TrustModel cloud client and are
+licensed under the proprietary TrustModel Python SDK License (NOT MIT):
+
+    trustmodel/client.py
+    trustmodel/exceptions.py
+    trustmodel/compat.py
+    trustmodel/endpoints/*
+    trustmodel/models/*
+    trustmodel/telemetry/*
+    trustmodel/utils/*
+
+TrustModel Python SDK License
+
+Copyright (c) 2026 TrustModel
+
+This software is provided as an official SDK for the TrustModel AI evaluation platform.
+
+TERMS AND CONDITIONS FOR USE:
+
+1. PERMITTED USE: This software may only be used to interact with the official
+   TrustModel API services. You may use this SDK in your applications to evaluate
+   AI models through TrustModel's platform.
+
+2. RESTRICTIONS: You may NOT:
+   - Modify, adapt, alter, or create derivative works of this software
+   - Distribute, publish, or redistribute this software or any part thereof
+   - Reverse engineer, decompile, or disassemble this software
+   - Use this software to create competing services
+   - Remove or alter any copyright, trademark, or other proprietary notices
+
+3. INSTALLATION: This software may only be installed through official channels
+   (PyPI, GitHub releases, or other TrustModel-approved distribution methods).
+
+4. API USAGE: This SDK connects to TrustModel's proprietary backend services.
+   Unauthorized access, modification of API calls, or attempts to bypass the
+   official SDK are strictly prohibited.
+
+5. TERMINATION: TrustModel reserves the right to terminate your access to this
+   SDK and associated services at any time for violation of these terms.
+
+6. DISCLAIMER: This software is provided "AS IS" without warranty of any kind.
+   TrustModel disclaims all warranties, express or implied, including but not
+   limited to merchantability and fitness for a particular purpose.
+
+7. LIMITATION OF LIABILITY: In no event shall TrustModel be liable for any
+   damages arising from the use of this software.
+
+For questions about licensing or to request permissions beyond this license,
+contact: info@predixtions.com

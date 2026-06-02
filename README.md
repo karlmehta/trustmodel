@@ -12,8 +12,8 @@
 [![Stars](https://img.shields.io/github/stars/karlmehta/trustmodel?style=social)](https://github.com/karlmehta/trustmodel)
 [![Demo](https://img.shields.io/badge/🤗-Live%20Demo-yellow)](https://huggingface.co/spaces/karlmehta/trustmodel-score-any-ai)
 
-**One toolkit, three products, one free API key.**
-Eval your AI · Monitor it in production · Govern what ships.
+**One toolkit, three open products + the official cloud client, one free API key.**
+Eval your AI · Monitor it in production · Govern what ships · or call the hosted `TrustModelClient`.
 
 </div>
 
@@ -166,6 +166,43 @@ Policy packs are plain YAML — [contribute one for your jurisdiction](CONTRIBUT
 
 ---
 
+## The cloud client — `TrustModelClient`
+
+The same `pip install trustmodel` also ships the **official TrustModel cloud client** for teams
+on the hosted platform — calibrated TrustScores, agentic & RAG evaluation, COTS/Galileo
+connectors, lending & HR bias verticals, batch jobs, and managed compliance frameworks.
+
+```python
+from trustmodel import TrustModelClient
+
+client = TrustModelClient(api_key="tm-...")
+result = client.evaluations.create(model="gpt-4o", prompt="...", response="...")
+print(result.trust_score)
+
+client.frameworks.list(domain="fair_lending")     # discover compliance frameworks
+client.agentic.evaluate(...)                       # score multi-step agents
+```
+
+Auto-capture production agent traces and stream them to your TrustModel dashboard (enterprise
+OTel mode — pass `agent_id`/`domain`/`frameworks` and `auto_init` routes to the telemetry forwarder):
+
+```python
+from trustmodel import auto_init
+
+auto_init(
+    api_key="tm-...",
+    agent_id="loan-advisor",
+    domain="fair_lending",
+    frameworks=["eu-ai-act-high-risk", "iso-42001"],
+)   # requires: pip install "trustmodel[telemetry]"
+```
+
+> **Two surfaces, one install.** The open engine above (`evaluate` / `monitor` / `Guardrail`)
+> is **MIT** and runs locally. `TrustModelClient` is the **proprietary** cloud client. Both ship
+> in the one `trustmodel` wheel — see [LICENSE](LICENSE) for the per-module split.
+
+---
+
 ## The 10 dimensions
 
 `safety` · `fairness` · `accuracy` · `privacy` · `transparency` · `robustness` · `accountability` · `explainability` · `compliance` · `reliability`
@@ -229,10 +266,12 @@ Or add to Claude Desktop / Cursor (`claude_desktop_config.json` / `.cursor/mcp.j
 
 ## Open core (Linux → Red Hat)
 
-This toolkit is **MIT-licensed** and free. The **calibrated hosted TrustScore**, PDF compliance
-reports, certification badges, and in-VPC agent governance are the commercial layer at
-**[trustmodel.ai](https://trustmodel.ai)**. Run the open source forever; upgrade when you need a
-score you can hand to an auditor.
+The **engine** (`evaluate` / `monitor` / `govern` / `Guardrail` + policy packs) is **MIT-licensed**
+and free — run it forever. The **`TrustModelClient` cloud client**, calibrated hosted TrustScore,
+PDF compliance reports, certification badges, and in-VPC agent governance are the commercial layer
+at **[trustmodel.ai](https://trustmodel.ai)** and ship under the proprietary
+[TrustModel SDK License](LICENSE). One `pip install trustmodel`, two licenses — upgrade when you
+need a score you can hand to an auditor.
 
 ## Links
 
