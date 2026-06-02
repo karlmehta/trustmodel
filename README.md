@@ -23,6 +23,17 @@ trustmodel login          # free account → API key + 5 credits ($500). No cred
 trustmodel eval "Take 500mg of metformin twice daily."
 ```
 
+> **Already have the TrustModel SDK installed (v2.x)?** `eval` / `monitor` /
+> `govern` and the MCP server arrived in **v3.0.0** — a plain `pip install` is a
+> no-op for you. Upgrade explicitly:
+>
+> ```bash
+> pip install -U trustmodel              # the three commands: evaluate / monitor / govern
+> pip install -U "trustmodel[mcp]"       # …plus the embeddable MCP server
+> ```
+>
+> Your existing `TrustModelClient` code keeps working unchanged after the upgrade.
+
 > **`trustmodel: command not found`?** `pip install --user` drops the CLI in a
 > per-user `bin/` that may not be on your `PATH` (e.g. `~/.local/bin` on Linux,
 > `~/Library/Python/3.x/bin` on macOS). Two fixes:
