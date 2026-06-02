@@ -32,7 +32,8 @@ trustmodel eval "Take 500mg of metformin twice daily."
 > pip install -U "trustmodel[mcp]"       # …plus the embeddable MCP server
 > ```
 >
-> Your existing `TrustModelClient` code keeps working unchanged after the upgrade.
+> Your existing `TrustModelClient` code keeps working unchanged — full details in
+> the [**v2 → v3 upgrade guide**](UPGRADING.md).
 
 > **`trustmodel: command not found`?** `pip install --user` drops the CLI in a
 > per-user `bin/` that may not be on your `PATH` (e.g. `~/.local/bin` on Linux,
