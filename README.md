@@ -72,6 +72,22 @@ trustmodel eval "Take 500mg of metformin twice daily."
 
 ---
 
+## ▶ See it on a real, live agent — Sophia
+
+We run all three products against **Sophia**, our production SDR agent (hosted on Vercel). Her
+results are public — and you can print the **exact same numbers in your terminal**:
+
+```bash
+python examples/00_sophia_live.py            # Sophia's live TrustScore + governance, read-only
+python examples/06_govern_sophia.py          # govern a live Sophia reply yourself
+```
+
+The live page: **[trustmodel.ai/sophia](https://trustmodel.ai/sophia)** — Eval (TrustScore across
+10 dimensions), Monitor (live-call telemetry), and Govern (audit trail). Same data, your terminal.
+Sophia's source stays private; the demo only reads her public results and wraps her responses.
+
+---
+
 ## 🔑 One free key unlocks all three products
 
 Every product needs a **free** TrustModel API key. Creating a developer account takes ~30 seconds,
