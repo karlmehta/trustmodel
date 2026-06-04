@@ -41,12 +41,35 @@ SOPHIA_API_URL = os.getenv("SOPHIA_API_URL")        # your deployed Sophia endpo
 SOPHIA_API_KEY = os.getenv("SOPHIA_API_KEY")        # optional bearer token
 
 
+# Field names a reply's text might hide under, across common agent frameworks.
+_TEXT_KEYS = ("text", "delta", "content", "reply", "response", "answer", "output", "message")
+
+
+def _extract_text(obj) -> str:
+    """Pull assistant text out of an arbitrary JSON value (recursive, best-effort)."""
+    if isinstance(obj, str):
+        return obj
+    if isinstance(obj, list):
+        return "".join(_extract_text(x) for x in obj)
+    if isinstance(obj, dict):
+        # OpenAI-style choices/messages first, then known text-bearing keys.
+        if "choices" in obj:
+            return _extract_text(obj["choices"])
+        for k in _TEXT_KEYS:
+            if k in obj:
+                return _extract_text(obj[k])
+    return ""
+
+
 def call_sophia(prompt: str) -> str:
     """POST to the deployed Sophia and return her full reply text.
 
-    Matches the contract in Sophia_SDR_Agent_Spec §13.1: a POST whose response is
-    an SSE stream of `content_delta` events. Adjust the field names here if your
-    deployment differs — this is the only place that knows Sophia's wire format.
+    Auto-detects the response shape so it works against most deployments:
+      * SSE stream  (Sophia_SDR_Agent_Spec §13.1: `content_delta` → `text`)
+      * plain JSON  ({"reply": "..."}, {"message": {"content": "..."}}, OpenAI-style, …)
+      * raw text
+    `call_sophia` is the only place that knows Sophia's wire format — tweak the
+    payload / key names here if your endpoint differs.
     """
     if not SOPHIA_API_URL:
         raise RuntimeError("Set SOPHIA_API_URL to your deployed Sophia endpoint.")
@@ -56,26 +79,36 @@ def call_sophia(prompt: str) -> str:
         "page_url": "https://trustmodel.ai/",
         "message": {"role": "user", "content": prompt},
     }
-    headers = {"Content-Type": "application/json", "Accept": "text/event-stream"}
+    headers = {"Content-Type": "application/json", "Accept": "text/event-stream, application/json"}
     if SOPHIA_API_KEY:
         headers["Authorization"] = f"Bearer {SOPHIA_API_KEY}"
 
     req = urllib.request.Request(
         SOPHIA_API_URL, data=json.dumps(payload).encode(), headers=headers, method="POST"
     )
-    parts: list[str] = []
     with urllib.request.urlopen(req, timeout=30) as resp:
-        for raw in resp:
-            line = raw.decode("utf-8", "replace").strip()
+        ctype = resp.headers.get("Content-Type", "")
+        body = resp.read().decode("utf-8", "replace")
+
+    if "text/event-stream" in ctype or "\ndata:" in body or body.startswith("data:"):
+        parts = []
+        for line in body.splitlines():
+            line = line.strip()
             if not line.startswith("data:"):
                 continue
-            try:
-                data = json.loads(line[len("data:"):].strip())
-            except json.JSONDecodeError:
+            chunk = line[len("data:"):].strip()
+            if chunk in ("", "[DONE]"):
                 continue
-            if isinstance(data, dict) and "text" in data:   # content_delta event
-                parts.append(data["text"])
-    return "".join(parts).strip() or "(no content)"
+            try:
+                parts.append(_extract_text(json.loads(chunk)))
+            except json.JSONDecodeError:
+                parts.append(chunk)               # plain-text SSE payload
+        return "".join(parts).strip() or "(no content)"
+
+    try:
+        return _extract_text(json.loads(body)).strip() or "(no content)"
+    except json.JSONDecodeError:
+        return body.strip() or "(no content)"     # raw text response
 
 
 # ── The one-line wrap: govern the deployed agent's output with the 3.0 SDK ────
