@@ -227,6 +227,29 @@ trustmodel govern "..." --policy nyc-ll144
 
 Policy packs are plain YAML — [contribute one for your jurisdiction](CONTRIBUTING.md) (LGPD, AIDA, …).
 
+### Govern a *deployed* agent — without sharing its source
+
+`@govern` wraps any callable, so it can sit in front of a **remote** agent just as easily as a
+local one. [`examples/06_govern_sophia.py`](examples/06_govern_sophia.py) governs **Sophia**, our
+hosted SDR agent: the example is a thin HTTP client pointed at wherever Sophia is deployed (e.g. a
+Vercel URL) and wraps her *responses* — her code, prompt, and model never leave your infra.
+
+```bash
+export SOPHIA_API_URL=https://<your-sophia>.vercel.app/api/sophia/chat
+python examples/06_govern_sophia.py
+```
+
+```python
+@govern(policy="sophia-sdr.yaml", on_block="redact", require_key=False)
+def sophia(prompt: str) -> str:
+    return call_deployed_sophia(prompt)     # HTTP → your hosted agent
+```
+
+**No sidecar or edge agent to install.** Enforcement runs in-process; for calibrated, audit-ready
+verdicts it talks to the TrustModel control plane over plain **HTTPS** (set `TRUSTMODEL_API_KEY`).
+Run it fully local and keyless with `require_key=False`. The same policy your agent enforces
+server-side (via AGP) becomes a portable, public, auditable second layer anyone can run.
+
 ---
 
 ## The cloud client — `TrustModelClient`

@@ -1,97 +1,109 @@
-"""Product 3 — Govern a REAL agent: Sophia, the TrustModel SDR.
+"""Product 3 — Govern a DEPLOYED agent: Sophia, the TrustModel SDR.
 
-This is example 05, but instead of a dummy agent it wraps Sophia's actual brain
-(Claude Sonnet 4.6 + her real system prompt) with the TrustModel SDK so unsafe
-output never reaches a visitor. It's the open, code-level mirror of Sophia's
-cloud AGP policy (Sophia_SDR_Agent_Spec §10) — the same HARD RULES, enforced
-locally with `@govern` + a policy pack you can read and edit.
+Sophia is a real, hosted agent (closed source). This demo does NOT contain her
+source, system prompt, or model — it's a thin client that points at wherever
+Sophia is deployed (e.g. your Vercel URL) and wraps her *responses* with the
+TrustModel SDK so unsafe output is caught before it reaches a visitor.
+
+That's the whole point: anyone — TM employees or the public — can test the SDK
+against the live agent without ever seeing Sophia's code.
+
+    Open repo (this file)         Your infra (private)
+    ┌───────────────────┐         ┌──────────────────────┐
+    │ @govern(...)       │  HTTP   │ Sophia on Vercel      │
+    │   → call_sophia()  │ ──────► │ /api/sophia/chat      │
+    │   ← govern verdict │ ◄────── │ (AGP-governed server) │
+    └───────────────────┘   SSE   └──────────────────────┘
+
+Sophia is already governed server-side by AGP (SKU 3). This shows the *same*
+policy enforced client-side with the open SDK — a portable, auditable second layer.
 
 Run:
-    pip install "trustmodel[anthropic]"
-    export TRUSTMODEL_API_KEY=tm-...          # free key: https://trustmodel.ai/signup
-    export ANTHROPIC_API_KEY=sk-ant-...       # Sophia's brain (omit → canned fallback)
+    export SOPHIA_API_URL=https://<your-sophia>.vercel.app/api/sophia/chat
+    export SOPHIA_API_KEY=...                  # optional, if your endpoint requires it
     python examples/06_govern_sophia.py
 
-What you'll see:
-    A) Sophia answers real visitor questions, each one passed through governance.
-    B) Even if Sophia is manipulated into emitting a discount, a fabricated price,
-       a secret, or a "I'm human" claim, the guardrail BLOCKS it and names the rule.
+No SOPHIA_API_URL set? Part B still runs — it shows the guardrail blocking
+manipulated output, which needs no agent at all.
 """
 
+import json
 import os
+import urllib.request
 from pathlib import Path
 
 from trustmodel import Guardrail, govern
 
-# The Sophia policy pack lives next to this script (open mirror of the AGP policy).
+# Policy pack lives next to this file — the open mirror of Sophia's AGP rules.
 SOPHIA_POLICY = str(Path(__file__).parent / "sophia-sdr.yaml")
 
-SOPHIA_SYSTEM_PROMPT = """\
-You are Sophia, the AI sales development representative for TrustModel.ai.
-You are an AI — never claim to be human. You know AI compliance (EU AI Act, NIST
-AI RMF, NYC LL144, OWASP LLM Top 10) and TrustModel's three products:
-  SKU 1 — AI Assurance (evaluate + certify; LIVE)
-  SKU 2 — Continuous Monitoring (telemetry via OpenTelemetry; LIVE)
-  SKU 3 — Agent Governance Platform (AGP; launching Q3 2026)
-Warm, direct, never salesy. 2-3 sentence answers. HARD RULES: never invent
-pricing, never promise a discount, never commit to a delivery date for a future
-feature, never claim a feature you can't find. If unsure, escalate.
-"""
+SOPHIA_API_URL = os.getenv("SOPHIA_API_URL")        # your deployed Sophia endpoint
+SOPHIA_API_KEY = os.getenv("SOPHIA_API_KEY")        # optional bearer token
 
 
-# ── Sophia's brain ──────────────────────────────────────────────────────────
-def _sophia_brain(prompt: str) -> str:
-    """Real Claude Sonnet 4.6 if an Anthropic key is present; else a canned reply."""
-    if os.getenv("ANTHROPIC_API_KEY"):
-        import anthropic
+def call_sophia(prompt: str) -> str:
+    """POST to the deployed Sophia and return her full reply text.
 
-        resp = anthropic.Anthropic().messages.create(
-            model="claude-sonnet-4-6",
-            max_tokens=300,
-            temperature=0.3,
-            system=SOPHIA_SYSTEM_PROMPT,
-            messages=[{"role": "user", "content": prompt}],
-        )
-        return "".join(getattr(b, "text", "") for b in resp.content)
+    Matches the contract in Sophia_SDR_Agent_Spec §13.1: a POST whose response is
+    an SSE stream of `content_delta` events. Adjust the field names here if your
+    deployment differs — this is the only place that knows Sophia's wire format.
+    """
+    if not SOPHIA_API_URL:
+        raise RuntimeError("Set SOPHIA_API_URL to your deployed Sophia endpoint.")
 
-    # Offline fallback so the demo always runs (no Anthropic key needed).
-    canned = {
-        "skus": "SKU 1 is AI Assurance (evaluate + certify your AI). SKU 2 is "
-        "Continuous Monitoring via OpenTelemetry. SKU 1 scores; SKU 2 watches "
-        "it in production. See trustmodel.ai/wiki/three-products [1].",
-        "agp": "SKU 3 is the Agent Governance Platform — runtime policy enforcement "
-        "for AI agents, launching Q3 2026. Want me to book you a demo?",
+    payload = {
+        "visitor_id": "sdk-demo",
+        "page_url": "https://trustmodel.ai/",
+        "message": {"role": "user", "content": prompt},
     }
-    p = prompt.lower()
-    if "agp" in p or "sku 3" in p or "governance" in p:
-        return canned["agp"]
-    return canned["skus"]
+    headers = {"Content-Type": "application/json", "Accept": "text/event-stream"}
+    if SOPHIA_API_KEY:
+        headers["Authorization"] = f"Bearer {SOPHIA_API_KEY}"
+
+    req = urllib.request.Request(
+        SOPHIA_API_URL, data=json.dumps(payload).encode(), headers=headers, method="POST"
+    )
+    parts: list[str] = []
+    with urllib.request.urlopen(req, timeout=30) as resp:
+        for raw in resp:
+            line = raw.decode("utf-8", "replace").strip()
+            if not line.startswith("data:"):
+                continue
+            try:
+                data = json.loads(line[len("data:"):].strip())
+            except json.JSONDecodeError:
+                continue
+            if isinstance(data, dict) and "text" in data:   # content_delta event
+                parts.append(data["text"])
+    return "".join(parts).strip() or "(no content)"
 
 
-# ── The one-line wrap: govern Sophia's output with the 3.0 SDK ───────────────
-# require_key=False → keyless local tier; drop it (or set TRUSTMODEL_API_KEY) for
-# calibrated cloud scoring + your audit dashboard.
+# ── The one-line wrap: govern the deployed agent's output with the 3.0 SDK ────
+# require_key=False → keyless local tier; set TRUSTMODEL_API_KEY for calibrated
+# cloud scoring + your audit dashboard.
 @govern(policy=SOPHIA_POLICY, on_block="redact", require_key=False)
 def sophia(prompt: str) -> str:
-    return _sophia_brain(prompt)
+    return call_sophia(prompt)
 
 
 def main() -> None:
-    print(f"Policy: {sophia.guardrail.pack.get('id', 'sophia-sdr')}  ·  judge: "
-          f"{sophia.guardrail.evaluator.judge.fingerprint()}\n")
-
-    print("── A) Sophia answers real visitor questions (each governed) ──")
-    for q in [
-        "What's the difference between SKU 1 and SKU 2?",
-        "Tell me about agent governance.",
-    ]:
-        print(f"\nVisitor: {q}")
-        print(f"Sophia : {sophia(q)}")
-
-    print("\n── B) If Sophia is manipulated, the guardrail blocks it ──")
-    # Raw guardrail check on candidate outputs — shows exactly which rule fires.
-    # (require_key=False → runs with no TrustModel account, the keyless local tier.)
     guard = Guardrail(policy=SOPHIA_POLICY, require_key=False)
+    print(f"Policy: {guard.pack.get('id', 'sophia-sdr')}  ·  judge: "
+          f"{guard.evaluator.judge.fingerprint()}")
+
+    print("\n── A) Live Sophia, every response governed by the SDK ──")
+    if SOPHIA_API_URL:
+        print(f"   → {SOPHIA_API_URL}")
+        for q in [
+            "What's the difference between SKU 1 and SKU 2?",
+            "Can you give me a discount on the Enterprise plan?",
+        ]:
+            print(f"\nVisitor: {q}")
+            print(f"Sophia : {sophia(q)}")     # redacted automatically if it violates
+    else:
+        print("   (skipped — set SOPHIA_API_URL to point at your Vercel deployment)")
+
+    print("\n── B) The guardrail's teeth (no agent needed) ──")
     rogue_outputs = [
         "Sure, I can give you 50% off the Enterprise plan today!",
         "The HR Bias Audit is just $4,500 for you.",
