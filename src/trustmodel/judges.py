@@ -16,6 +16,7 @@ import hashlib
 import json
 import os
 import re
+import warnings
 from dataclasses import dataclass
 from typing import Optional
 
@@ -158,17 +159,71 @@ class HeuristicJudge(Judge):
         return ordinal, reason
 
 
+_BACKENDS = {
+    "openai": ("OPENAI_API_KEY", "trustmodel[openai]", OpenAIJudge),
+    "anthropic": ("ANTHROPIC_API_KEY", "trustmodel[anthropic]", AnthropicJudge),
+}
+
+
 def get_default_judge(prefer: Optional[str] = None) -> Judge:
-    """Auto-select a judge based on installed SDKs + available API keys."""
-    order = [prefer] if prefer else ["openai", "anthropic", "heuristic"]
+    """Select a judge from installed SDKs + available API keys.
+
+    Resolution order:
+      1. explicit `prefer=` argument
+      2. $TRUSTMODEL_JUDGE  (e.g. `export TRUSTMODEL_JUDGE=anthropic`)
+      3. auto: openai -> anthropic -> heuristic
+
+    Unlike a silent fallback, this WARNS when a backend you asked for (or have a key
+    for) can't be used, so a missing `pip install` doesn't quietly downgrade you to
+    the uncalibrated heuristic judge.
+    """
+    prefer = prefer or os.getenv("TRUSTMODEL_JUDGE") or None
+    if prefer:
+        prefer = prefer.strip().lower()
+
+    order = [prefer] if prefer else ["openai", "anthropic"]
+    explicit = prefer is not None
+
     for choice in order:
-        try:
-            if choice == "openai" and os.getenv("OPENAI_API_KEY"):
-                return OpenAIJudge()
-            if choice == "anthropic" and os.getenv("ANTHROPIC_API_KEY"):
-                return AnthropicJudge()
-            if choice == "heuristic":
-                return HeuristicJudge()
-        except Exception:  # noqa: BLE001 - SDK missing → try the next backend
+        if choice == "heuristic":
+            return HeuristicJudge()
+        spec = _BACKENDS.get(choice)
+        if spec is None:
+            warnings.warn(
+                f"Unknown judge '{choice}'. Use one of: openai, anthropic, heuristic. "
+                f"Falling back to the heuristic judge.",
+                stacklevel=2,
+            )
+            return HeuristicJudge()
+        env_var, extra, judge_cls = spec
+        if not os.getenv(env_var):
+            if explicit:
+                warnings.warn(
+                    f"Judge '{choice}' was requested but {env_var} is not set "
+                    f"(checked process env and ./.env). Falling back to the heuristic judge. "
+                    f"Set {env_var} to use {choice}.",
+                    stacklevel=2,
+                )
             continue
+        try:
+            return judge_cls()
+        except ImportError:
+            warnings.warn(
+                f"{env_var} is set but the '{choice}' SDK is not installed, so scoring "
+                f"would silently use the uncalibrated heuristic judge. "
+                f"Run:  pip install \"{extra}\"",
+                stacklevel=2,
+            )
+            if explicit:
+                return HeuristicJudge()
+            continue
+
+    if explicit:
+        return HeuristicJudge()
+    warnings.warn(
+        "No LLM judge available (no OPENAI_API_KEY/ANTHROPIC_API_KEY found and no SDK "
+        "installed). Using the uncalibrated heuristic judge. For real scoring:\n"
+        '  pip install "trustmodel[anthropic]" && export ANTHROPIC_API_KEY=sk-ant-...',
+        stacklevel=2,
+    )
     return HeuristicJudge()

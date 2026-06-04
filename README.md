@@ -112,12 +112,63 @@ trustmodel eval "..." --cloud                    # calibrated cloud score (uses 
 
 Local scoring uses **your own LLM** as the judge (OpenAI or Anthropic), at temperature 0, on a
 5-point ordinal scale per dimension — so it's reproducible and auditable. No LLM key? It falls
-back to a transparent heuristic judge so it always runs.
+back to a transparent heuristic judge so it always runs (and tells you it did).
+
+### Choose your judge LLM
+
+You must install the matching SDK **and** provide that provider's key — installing one without the
+other (or vice-versa) falls back to the heuristic judge. Pick **one**:
 
 ```bash
-pip install "trustmodel[openai]"      # or [anthropic]
+# Anthropic (Claude)
+pip install "trustmodel[anthropic]"
+export ANTHROPIC_API_KEY=sk-ant-...
+
+# …or OpenAI
+pip install "trustmodel[openai]"
 export OPENAI_API_KEY=sk-...
 ```
+
+Keys can also live in a **`.env` file** in your working directory — TrustModel loads it
+automatically (real environment variables always win):
+
+```bash
+# .env
+ANTHROPIC_API_KEY=sk-ant-...
+TRUSTMODEL_API_KEY=tm-...
+```
+
+Select which backend judges your output, in priority order:
+
+1. the `prefer=` argument → `evaluate(text, prefer="anthropic")` / `LocalEvaluator(prefer="anthropic")`
+2. the `$TRUSTMODEL_JUDGE` env var → `export TRUSTMODEL_JUDGE=anthropic`
+3. auto-detect → OpenAI, then Anthropic, then the heuristic fallback
+
+```python
+from trustmodel import evaluate
+
+result = evaluate("Take 500mg of metformin twice daily.", prefer="anthropic")
+print(result.judge_fingerprint)   # anthropic/claude-haiku-4-5-...  ← confirms which judge ran
+```
+
+> If you set a key but the result still looks like the heuristic judge, TrustModel prints a
+> warning explaining why (SDK not installed, key not found, etc.) — it never silently downgrades.
+
+### Run the examples
+
+```bash
+git clone https://github.com/karlmehta/trustmodel && cd trustmodel
+pip install -e ".[anthropic]"
+export TRUSTMODEL_API_KEY=tm-...        # free key: https://trustmodel.ai/signup
+export ANTHROPIC_API_KEY=sk-ant-...     # or put both in a .env file here
+export TRUSTMODEL_JUDGE=anthropic
+
+python examples/01_eval_local.py                       # score sample outputs
+python examples/02_eval_ci.py outputs.jsonl 80         # CI gate: exit 1 if any score < 80
+```
+
+Each example prints the active judge fingerprint so you can confirm Claude (not the heuristic) is
+doing the scoring.
 
 ## Product 2 — 📈 Monitor
 

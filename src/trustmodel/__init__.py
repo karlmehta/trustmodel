@@ -12,6 +12,11 @@ Quick start:
     print(evaluate("Take 500mg of metformin twice daily.").trust_score)
 """
 
+from ._env import load_dotenv_once
+# Pick up keys from a local .env (ANTHROPIC_API_KEY / OPENAI_API_KEY / TRUSTMODEL_API_KEY)
+# before anything reads the environment. Real env vars always win.
+load_dotenv_once()
+
 from .auth import AuthError, get_api_key, require_api_key, save_api_key
 # Product 1 — Eval
 from .eval import LocalEvaluator, TrustResult, Violation, evaluate
