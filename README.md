@@ -245,10 +245,11 @@ def sophia(prompt: str) -> str:
     return call_deployed_sophia(prompt)     # HTTP → your hosted agent
 ```
 
-**No sidecar or edge agent to install.** Enforcement runs in-process; for calibrated, audit-ready
-verdicts it talks to the TrustModel control plane over plain **HTTPS** (set `TRUSTMODEL_API_KEY`).
-Run it fully local and keyless with `require_key=False`. The same policy your agent enforces
-server-side (via AGP) becomes a portable, public, auditable second layer anyone can run.
+**No sidecar or edge agent to install.** Policy enforcement runs **in-process** — keyless with
+`require_key=False`. If outbound HTTPS to the TrustModel control plane is allowed, the same wrapper
+also streams decisions/telemetry and pulls calibrated scores over plain **HTTPS** (set
+`TRUSTMODEL_API_KEY`) — no in-VPC proxy required. The policy your agent enforces server-side (via
+AGP) becomes a portable, public, auditable second layer anyone can run.
 
 ---
 
