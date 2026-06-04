@@ -132,15 +132,18 @@ class Guardrail:
 _REDACTION = "[blocked by TrustModel governance: policy violation]"
 
 
-def govern(policy: str = "eu-ai-act", on_block: str = "raise", block_severity: str = "high"):
+def govern(policy: str = "eu-ai-act", on_block: str = "raise", block_severity: str = "high",
+           require_key: bool = True):
     """Decorator that gates a function's string output through a Guardrail.
 
     on_block:
       * "raise"  -> raise GovernanceError (default)
       * "redact" -> return a safe placeholder instead of the violating output
       * "flag"   -> return the output unchanged but attach the verdict
+
+    require_key=False runs the keyless local tier (no TrustModel account needed).
     """
-    gr = Guardrail(policy=policy, block_severity=block_severity)
+    gr = Guardrail(policy=policy, block_severity=block_severity, require_key=require_key)
 
     def deco(fn):
         @functools.wraps(fn)

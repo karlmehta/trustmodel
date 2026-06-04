@@ -1,0 +1,74 @@
+id: sophia-sdr
+name: Sophia SDR — runtime governance (open mirror of the AGP policy)
+version: "1.0"
+description: >
+  Local, code-level mirror of Sophia's cloud AGP policy (Sophia_SDR_Agent_Spec §10.2).
+  Enforces Sophia's HARD RULES on her *output* before it reaches a visitor: no invented
+  pricing, no discounts, no feature-delivery promises, no claiming to be human, no secret
+  leakage, plus dimension thresholds for safety / privacy / explainability. The cloud AGP
+  evaluates per-tool-call with richer signals; this pack is what you can run offline today.
+references:
+  - "Sophia_SDR_Agent_Spec.md §6 (HARD RULES) and §10.2 (SOPHIA_POLICY)"
+  - "EU AI Act · NIST AI RMF · OWASP LLM Top 10 · GDPR"
+rules:
+  # ─── Hard denies (mirror of AGP priority-10 deny rules) ────────────────
+  - id: deny-discount-offer
+    type: pattern
+    must_not_match: '(?i)\b(discount|% ?off|coupon|promo code|waive the fee|for free|free of charge|special (deal|price|rate))\b'
+    severity: high
+    description: "HARD RULE — Sophia never promises a discount."
+
+  - id: deny-feature-commitment
+    type: pattern
+    must_not_match: '(?i)\b(guarantee|promise|will (be|ship|launch|release|deliver)|available|ready|delivered)\b.{0,40}\b(by|in|before)\b.{0,20}(Q[1-4]|H[12]|jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec|\d{4}|\d{1,2}/\d{1,2})'
+    severity: high
+    description: "HARD RULE — Sophia never commits to a delivery date for a future feature."
+
+  - id: deny-pricing-fabrication
+    # Allow only the published numbers; any other $-amount in an answer is a fabrication.
+    # Official ranges live in /wiki/*/pricing — keep this list in sync with the wiki.
+    type: pattern
+    must_not_match: '(?i)\$(?!\s?0\b)(?!\s?100\b)(?!\s?1,?000\b)(?!\s?10,?000\b)(?!\s?15,?000\b)(?!\s?18,?000\b)(?!\s?25,?000\b)(?!\s?50,?000\b)(?!\s?200,?000\b)\d[\d,]*'
+    severity: high
+    description: "HARD RULE — Sophia quotes only published prices; flags any other $-amount."
+
+  - id: deny-claim-human
+    type: pattern
+    must_not_match: "(?i)\\b(i am|i'm) (a )?(human|real person|not an ai|a real human)\\b"
+    severity: high
+    description: "HARD RULE — Sophia is an AI and never claims to be human."
+
+  # ─── OWASP / secret leakage ────────────────────────────────────────────
+  - id: deny-secret-leak
+    type: pattern
+    must_not_match: '(?i)(api[_-]?key|secret[_-]?key|password|bearer)\s*[:=]\s*\S+'
+    severity: high
+    description: "OWASP LLM02 — output must never disclose secrets/credentials."
+
+  - id: deny-prompt-injection-echo
+    type: pattern
+    must_not_match: '(?i)ignore (all|previous) instructions|disregard the system prompt'
+    severity: high
+    description: "OWASP LLM01 — output echoes prompt-injection / instruction override."
+
+  # ─── Dimension thresholds (eval-engine backed) ─────────────────────────
+  - id: dim-safety
+    type: dimension
+    dimension: safety
+    min_score: 0.6
+    severity: high
+    description: "Output must not be unsafe (LLM09 — overreliance / unverified claims)."
+
+  - id: dim-privacy
+    type: dimension
+    dimension: privacy
+    min_score: 0.6
+    severity: high
+    description: "GDPR — output must not leak visitor PII."
+
+  - id: dim-explainability
+    type: dimension
+    dimension: explainability
+    min_score: 0.5
+    severity: medium
+    description: "Answers should be explainable / cite the wiki, not opaque assertions."
