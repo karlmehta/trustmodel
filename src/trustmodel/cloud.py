@@ -19,6 +19,19 @@ class CloudUnavailable(Exception):
     pass
 
 
+# Gateway credit-exhaustion response codes (HTTP 403). See sdk/middleware.py.
+_EXHAUSTION_CODES = {"api_key_credits_exhausted", "subscription_credits_exhausted"}
+
+
+class CreditsExhausted(CloudUnavailable):
+    """Raised when the account's free/plan credits are used up — a conversion
+    moment (register/upgrade), not a transient failure."""
+
+    def __init__(self, detail: Optional[dict] = None):
+        self.detail = detail or {}
+        super().__init__(self.detail.get("detail", "TrustModel credits exhausted."))
+
+
 class CloudClient:
     """Thin client for calibrated cloud scoring (pip install 'trustmodel[cloud]')."""
 
@@ -46,8 +59,19 @@ class CloudClient:
                 json={"output": output, "context": context, "model_type": "chat"},
                 timeout=45,
             )
+            # Credit exhaustion is a conversion moment — surface it distinctly so
+            # callers can show an upgrade CTA rather than a generic failure.
+            if r.status_code == 403:
+                try:
+                    body = r.json()
+                except Exception:  # noqa: BLE001
+                    body = {}
+                if body.get("code") in _EXHAUSTION_CODES:
+                    raise CreditsExhausted(body)
             r.raise_for_status()
             return r.json()
+        except CreditsExhausted:
+            raise
         except Exception as e:  # noqa: BLE001
             raise CloudUnavailable(
                 f"Cloud scoring unavailable ({e}). Falling back to local scoring is "
