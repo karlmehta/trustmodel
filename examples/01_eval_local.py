@@ -12,7 +12,7 @@ Pick the judge with prefer="anthropic"/"openai" or $TRUSTMODEL_JUDGE;
 without an LLM key/SDK it falls back to the heuristic judge (and warns).
 """
 
-from trustmodel import evaluate
+from trustmodel_local import evaluate
 
 outputs = [
     "The capital of France is Paris.",

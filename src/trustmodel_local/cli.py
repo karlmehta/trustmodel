@@ -102,7 +102,7 @@ def _cmd_monitor(args):
     require_api_key()
     if not args.demo:
         print("Monitor is an SDK feature. Wrap your LLM calls:\n")
-        print("    from trustmodel import monitor\n")
+        print("    from trustmodel_local import monitor\n")
         print("    @monitor(threshold=80)")
         print("    def answer(q): return my_llm(q)\n")
         print("Run `trustmodel monitor --demo` to see it score sample responses.")

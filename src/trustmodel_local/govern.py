@@ -5,14 +5,14 @@ loads a policy pack (open-source YAML mapped to a regulation) and evaluates the
 output against its rules — both fast pattern rules and dimension-threshold rules
 backed by the eval engine.
 
-    from trustmodel import Guardrail
+    from trustmodel_local import Guardrail
     gr = Guardrail("eu-ai-act")
     verdict = gr.check("Based on your resume you're not a culture fit. We can't say why.")
     print(verdict.allowed, verdict.violations)
 
 Or gate an agent so blocked output never escapes:
 
-    from trustmodel import govern
+    from trustmodel_local import govern
 
     @govern(policy="owasp-llm", on_block="redact")
     def agent(prompt: str) -> str:

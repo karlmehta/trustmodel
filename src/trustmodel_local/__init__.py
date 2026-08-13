@@ -8,7 +8,7 @@ Three products, one free API key (5 credits / $500 on signup → https://trustmo
 
 Quick start:
 
-    from trustmodel import evaluate
+    from trustmodel_local import evaluate
     print(evaluate("Take 500mg of metformin twice daily.").trust_score)
 """
 

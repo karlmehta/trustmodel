@@ -17,7 +17,7 @@ import json
 import os
 import sys
 
-from trustmodel import LocalEvaluator
+from trustmodel_local import LocalEvaluator
 
 path = sys.argv[1] if len(sys.argv) > 1 else "outputs.jsonl"
 threshold = float(sys.argv[2]) if len(sys.argv) > 2 else 80.0

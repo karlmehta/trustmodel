@@ -5,7 +5,7 @@ Run:
     python examples/04_govern_guardrail.py
 """
 
-from trustmodel import Guardrail, available_policies
+from trustmodel_local import Guardrail, available_policies
 
 print("Available policy packs:", ", ".join(available_policies()), "\n")
 

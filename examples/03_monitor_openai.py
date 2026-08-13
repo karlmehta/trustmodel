@@ -7,7 +7,7 @@ Run:
     python examples/03_monitor_openai.py
 """
 
-from trustmodel import auto_init, get_global_monitor
+from trustmodel_local import auto_init, get_global_monitor
 
 # One line: instruments openai so every chat completion is scored inline.
 auto_init(threshold=80)

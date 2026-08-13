@@ -3,9 +3,9 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "trustmodel"
+name = "trustmodel-local"
 version = "3.0.0"
-description = "Score any AI for trust in 30 seconds. Open-source eval, monitoring, and governance across 10 trust dimensions — no API key required."
+description = "Score any AI for trust in 30 seconds. Open-source, 100% local eval, monitoring, and governance across 10 trust dimensions — no API key required. (For the hosted platform, use the official `trustmodel` cloud SDK.)"
 readme = "README.md"
 requires-python = ">=3.9"
 license = { text = "MIT" }
@@ -42,11 +42,11 @@ Repository = "https://github.com/karlmehta/trustmodel"
 Demo = "https://huggingface.co/spaces/karlmehta/trustmodel-score-any-ai"
 
 [project.scripts]
-trustmodel = "trustmodel.cli:main"
-trustmodel-mcp = "trustmodel.mcp_server:main"
+trustmodel = "trustmodel_local.cli:main"
+trustmodel-mcp = "trustmodel_local.mcp_server:main"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/trustmodel"]
+packages = ["src/trustmodel_local"]
 
 [tool.ruff]
 line-length = 100
