@@ -38,7 +38,7 @@ from .govern import (
 # Product 2 — Monitor
 from .monitor import Monitor, TraceEvent, auto_init, get_global_monitor, monitor
 
-__version__ = "0.1.0"
+__version__ = "3.0.0"
 
 __all__ = [
     "__version__",
