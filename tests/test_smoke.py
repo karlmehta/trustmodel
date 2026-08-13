@@ -10,7 +10,7 @@ import pytest
 # All three products require an API key; use a dummy one for local tests.
 os.environ.setdefault("TRUSTMODEL_API_KEY", "tm-test")
 
-from trustmodel import (  # noqa: E402
+from trustmodel_local import (
     AuthError,
     Guardrail,
     LocalEvaluator,
@@ -61,7 +61,7 @@ def test_monitor_records_events():
 def test_missing_key_raises_authentication_error(monkeypatch):
     monkeypatch.delenv("TRUSTMODEL_API_KEY", raising=False)
     # Also bypass any saved credentials file.
-    import trustmodel.auth as auth
+    from trustmodel_local import auth
     monkeypatch.setattr(auth, "_read_saved", lambda: None)
     with pytest.raises(AuthError):
         LocalEvaluator()

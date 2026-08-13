@@ -16,7 +16,7 @@ import sys
 from pathlib import Path
 
 from . import __version__
-from .auth import AuthError, SIGNUP_URL, require_api_key, save_api_key
+from .auth import SIGNUP_URL, AuthError, require_api_key, save_api_key
 
 
 def _read_input(arg: str) -> str:
@@ -102,7 +102,7 @@ def _cmd_monitor(args):
     require_api_key()
     if not args.demo:
         print("Monitor is an SDK feature. Wrap your LLM calls:\n")
-        print("    from trustmodel import monitor\n")
+        print("    from trustmodel_local import monitor\n")
         print("    @monitor(threshold=80)")
         print("    def answer(q): return my_llm(q)\n")
         print("Run `trustmodel monitor --demo` to see it score sample responses.")

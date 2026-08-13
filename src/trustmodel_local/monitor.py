@@ -6,7 +6,7 @@ threshold alerts, and an optional OpenTelemetry export.
 
 Local-first (no account):
 
-    from trustmodel import monitor
+    from trustmodel_local import monitor
 
     @monitor(threshold=80)            # alert if a response scores below 80
     def answer(q: str) -> str:
@@ -14,7 +14,7 @@ Local-first (no account):
 
 Or instrument an OpenAI client in one line:
 
-    from trustmodel import auto_init
+    from trustmodel_local import auto_init
     auto_init()                       # local inline scoring; auto_init(api_key=...) forwards to cloud
 """
 

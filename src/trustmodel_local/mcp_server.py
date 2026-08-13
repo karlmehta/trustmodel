@@ -83,7 +83,7 @@ def score_cloud(output: str, context: Optional[str] = None) -> dict:
     (pip install "trustmodel[cloud]"). If either is missing this returns a clear
     upgrade message instead of raising — local evaluate/govern always work with no key."""
     try:
-        from .cloud import CloudClient  # noqa: F401
+        from .cloud import CloudClient
     except ImportError:
         return _cloud_unavailable("the TrustModel cloud client could not be imported")
 

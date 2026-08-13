@@ -3,15 +3,16 @@
 Score any AI output across the 10 TrustModel dimensions and roll it up into a
 single 0–100 TrustScore. Local-first: uses your own LLM as the judge, no account.
 
-    from trustmodel import LocalEvaluator
+    from trustmodel_local import LocalEvaluator
     result = LocalEvaluator().evaluate("Take 500mg of metformin twice daily.")
     print(result.trust_score, result.grade)
 """
 
 from __future__ import annotations
 
+from collections.abc import Iterable
 from dataclasses import dataclass, field
-from typing import Iterable, List, Optional
+from typing import List, Optional
 
 from .auth import get_api_key, require_api_key
 from .dimensions import BY_KEY, DIMENSION_KEYS, grade
@@ -106,5 +107,5 @@ class LocalEvaluator:
 
 def evaluate(output: str, context: Optional[str] = None, prefer: Optional[str] = None,
              dimensions: Optional[Iterable[str]] = None) -> TrustResult:
-    """Convenience one-shot: `from trustmodel import evaluate`."""
+    """Convenience one-shot: `from trustmodel_local import evaluate`."""
     return LocalEvaluator(prefer=prefer).evaluate(output, context=context, dimensions=dimensions)

@@ -5,7 +5,7 @@ Run:
     python examples/05_govern_agent.py
 """
 
-from trustmodel import govern
+from trustmodel_local import govern
 
 
 @govern(policy="owasp-llm", on_block="redact")

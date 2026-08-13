@@ -12,13 +12,14 @@
 [![Stars](https://img.shields.io/github/stars/karlmehta/trustmodel?style=social)](https://github.com/karlmehta/trustmodel)
 [![Demo](https://img.shields.io/badge/🤗-Live%20Demo-yellow)](https://huggingface.co/spaces/karlmehta/trustmodel-score-any-ai)
 
-**One toolkit, three open products + the official cloud client, one free API key.**
-Eval your AI · Monitor it in production · Govern what ships · or call the hosted `TrustModelClient`.
+**One toolkit, three open products, one free API key — 100% local.**
+Eval your AI · Monitor it in production · Govern what ships. For the hosted platform, use the
+separate official [`trustmodel` cloud SDK](https://pypi.org/project/trustmodel/) (see below).
 
 </div>
 
 ```bash
-pip install trustmodel
+pip install trustmodel-local
 trustmodel login          # free account → API key + 5 credits ($500). No credit card.
 trustmodel eval "Take 500mg of metformin twice daily."
 ```
@@ -111,7 +112,7 @@ trustmodel login
 Score any AI output across 10 trust dimensions and roll it into a 0–100 **TrustScore**.
 
 ```python
-from trustmodel import evaluate
+from trustmodel_local import evaluate
 
 result = evaluate("Based on your resume you're not a culture fit. We can't say why.")
 print(result.trust_score)     # 38.0
@@ -137,11 +138,11 @@ other (or vice-versa) falls back to the heuristic judge. Pick **one**:
 
 ```bash
 # Anthropic (Claude)
-pip install "trustmodel[anthropic]"
+pip install "trustmodel-local[anthropic]"
 export ANTHROPIC_API_KEY=sk-ant-...
 
 # …or OpenAI
-pip install "trustmodel[openai]"
+pip install "trustmodel-local[openai]"
 export OPENAI_API_KEY=sk-...
 ```
 
@@ -161,7 +162,7 @@ Select which backend judges your output, in priority order:
 3. auto-detect → OpenAI, then Anthropic, then the heuristic fallback
 
 ```python
-from trustmodel import evaluate
+from trustmodel_local import evaluate
 
 result = evaluate("Take 500mg of metformin twice daily.", prefer="anthropic")
 print(result.judge_fingerprint)   # anthropic/claude-haiku-4-5-...  ← confirms which judge ran
@@ -191,7 +192,7 @@ doing the scoring.
 Continuously score your AI **in production**. Wrap a function or auto-instrument your LLM client.
 
 ```python
-from trustmodel import monitor
+from trustmodel_local import monitor
 
 @monitor(threshold=80)            # alert when a response scores below 80
 def answer(question: str) -> str:
@@ -204,7 +205,7 @@ print(answer.monitor.stats())     # {"count": 1, "avg_trust_score": 72.0, "below
 One-line auto-instrumentation + optional OpenTelemetry export:
 
 ```python
-from trustmodel import auto_init
+from trustmodel_local import auto_init
 auto_init(otel=True)                       # local inline scoring + OTEL spans
 auto_init(api_key="tm-...")                # also forward traces to your cloud dashboard
 
@@ -218,7 +219,7 @@ Enforce policy **before** AI output reaches a user or another tool. Open-source 
 to real regulations.
 
 ```python
-from trustmodel import Guardrail
+from trustmodel_local import Guardrail
 
 gr = Guardrail("eu-ai-act")
 verdict = gr.check("Based on your resume you're not a culture fit. We can't say why.")
@@ -229,7 +230,7 @@ print(verdict.violations)         # [art13-explainability (high), ...]
 Gate an agent so blocked output never escapes:
 
 ```python
-from trustmodel import govern
+from trustmodel_local import govern
 
 @govern(policy="owasp-llm", on_block="redact")
 def agent(prompt: str) -> str:
@@ -269,11 +270,21 @@ AGP) becomes a portable, public, auditable second layer anyone can run.
 
 ---
 
-## The cloud client — `TrustModelClient`
+## The cloud client — a separate package: `trustmodel`
 
-The same `pip install trustmodel` also ships the **official TrustModel cloud client** for teams
-on the hosted platform — calibrated TrustScores, agentic & RAG evaluation, COTS/Galileo
-connectors, lending & HR bias verticals, batch jobs, and managed compliance frameworks.
+For the hosted platform, install the **separate official cloud SDK** — a different package
+(`pip install trustmodel`, import `trustmodel`) maintained by the TrustModel team. It provides
+calibrated TrustScores, agentic & RAG evaluation, COTS/Galileo connectors, lending & HR bias
+verticals, batch jobs, and managed compliance frameworks.
+
+> ⚠️ **Two different packages, two different APIs.** This repo is `trustmodel-local` (import
+> `trustmodel_local`) — the local, open-source tool with `evaluate` / `monitor` / `govern` /
+> `Guardrail`. The hosted SDK is `trustmodel` (import `trustmodel`) with `TrustModelClient` and
+> `guardrails.decide()`. Don't mix their APIs — installing one does **not** give you the other's methods.
+
+```bash
+pip install trustmodel   # the separate hosted SDK — NOT this repo
+```
 
 ```python
 from trustmodel import TrustModelClient
@@ -373,8 +384,8 @@ The **engine** (`evaluate` / `monitor` / `govern` / `Guardrail` + policy packs) 
 and free — run it forever. The **`TrustModelClient` cloud client**, calibrated hosted TrustScore,
 PDF compliance reports, certification badges, and in-VPC agent governance are the commercial layer
 at **[trustmodel.ai](https://trustmodel.ai)** and ship under the proprietary
-[TrustModel SDK License](LICENSE). One `pip install trustmodel`, two licenses — upgrade when you
-need a score you can hand to an auditor.
+[TrustModel SDK License](LICENSE). Two packages, two licenses: `trustmodel-local` (this repo, MIT)
+and the hosted `trustmodel` SDK (proprietary) — upgrade when you need a score you can hand to an auditor.
 
 ## Links
 

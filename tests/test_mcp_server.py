@@ -10,14 +10,14 @@ import pytest
 
 pytest.importorskip("mcp", reason="requires the 'mcp' extra: pip install \"trustmodel[mcp]\"")
 
-from trustmodel import mcp_server  # noqa: E402
+from trustmodel_local import mcp_server
 
 
 @pytest.fixture(autouse=True)
 def _no_key(monkeypatch):
     """Run every test as if no TrustModel API key is available anywhere."""
     monkeypatch.delenv("TRUSTMODEL_API_KEY", raising=False)
-    import trustmodel.auth as auth
+    from trustmodel_local import auth
     monkeypatch.setattr(auth, "_read_saved", lambda: None)
 
 

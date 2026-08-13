@@ -29,7 +29,7 @@ class CloudClient:
     def _session(self):
         try:
             import requests  # lazy; requires trustmodel[cloud]
-        except Exception as e:  # noqa: BLE001
+        except Exception as e:
             raise CloudUnavailable(
                 "Install the cloud extra to use calibrated scoring: "
                 "pip install 'trustmodel[cloud]'"
@@ -48,7 +48,7 @@ class CloudClient:
             )
             r.raise_for_status()
             return r.json()
-        except Exception as e:  # noqa: BLE001
+        except Exception as e:
             raise CloudUnavailable(
                 f"Cloud scoring unavailable ({e}). Falling back to local scoring is "
                 f"available via LocalEvaluator. Manage credits at {KEYS_URL}."

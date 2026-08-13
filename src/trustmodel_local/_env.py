@@ -19,8 +19,7 @@ def _parse_line(line: str):
     line = line.strip()
     if not line or line.startswith("#"):
         return None
-    if line.startswith("export "):
-        line = line[len("export "):]
+    line = line.removeprefix("export ")
     if "=" not in line:
         return None
     key, _, val = line.partition("=")

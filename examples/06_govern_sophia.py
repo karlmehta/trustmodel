@@ -32,7 +32,7 @@ import os
 import urllib.request
 from pathlib import Path
 
-from trustmodel import Guardrail, govern
+from trustmodel_local import Guardrail, govern
 
 # Policy pack lives next to this file — the open mirror of Sophia's AGP rules.
 SOPHIA_POLICY = str(Path(__file__).parent / "sophia-sdr.yaml")
