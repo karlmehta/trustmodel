@@ -13,26 +13,30 @@ Quick start:
 """
 
 from ._env import load_dotenv_once
+
 # Pick up keys from a local .env (ANTHROPIC_API_KEY / OPENAI_API_KEY / TRUSTMODEL_API_KEY)
 # before anything reads the environment. Real env vars always win.
 load_dotenv_once()
 
 from .auth import AuthError, get_api_key, require_api_key, save_api_key
+from .dimensions import DIMENSION_KEYS, DIMENSIONS
+
 # Product 1 — Eval
 from .eval import LocalEvaluator, TrustResult, Violation, evaluate
-# Product 2 — Monitor
-from .monitor import Monitor, TraceEvent, auto_init, get_global_monitor, monitor
+
 # Product 3 — Govern
 from .govern import (
+    GovernanceError,
     Guardrail,
     GuardrailVerdict,
-    GovernanceError,
     RuleViolation,
     available_policies,
     govern,
     load_policy,
 )
-from .dimensions import DIMENSION_KEYS, DIMENSIONS
+
+# Product 2 — Monitor
+from .monitor import Monitor, TraceEvent, auto_init, get_global_monitor, monitor
 
 __version__ = "0.1.0"
 

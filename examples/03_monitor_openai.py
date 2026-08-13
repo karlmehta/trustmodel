@@ -12,7 +12,7 @@ from trustmodel_local import auto_init, get_global_monitor
 # One line: instruments openai so every chat completion is scored inline.
 auto_init(threshold=80)
 
-import openai  # noqa: E402
+import openai
 
 openai.chat.completions.create(
     model="gpt-4o-mini",

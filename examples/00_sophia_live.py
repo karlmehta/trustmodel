@@ -20,7 +20,7 @@ import sys
 import urllib.request
 
 try:
-    from trustmodel_local.dimensions import grade as _grade   # reuse the SDK's 0-100 → letter
+    from trustmodel_local.dimensions import grade as _grade  # reuse the SDK's 0-100 → letter
 except Exception:  # noqa: BLE001 - keep runnable even if the package isn't importable
     def _grade(score: float) -> str:
         return "A" if score >= 90 else "B" if score >= 80 else "C" if score >= 70 else \

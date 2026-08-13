@@ -50,3 +50,12 @@ packages = ["src/trustmodel_local"]
 
 [tool.ruff]
 line-length = 100
+
+[tool.ruff.lint]
+# Sane, explicit baseline. Without this, an unconfigured broad ruleset left CI
+# permanently red on pre-existing style debt (typing-modernization, blind-except,
+# import-sort) unrelated to functionality.
+select = ["E", "F", "I", "W"]
+# E402: intentional conditional/late imports (e.g. optional-dependency guards).
+# E501: line length is advisory here; line-length above formats new code.
+ignore = ["E402", "E501"]

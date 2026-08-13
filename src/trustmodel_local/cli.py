@@ -16,7 +16,7 @@ import sys
 from pathlib import Path
 
 from . import __version__
-from .auth import AuthError, SIGNUP_URL, require_api_key, save_api_key
+from .auth import SIGNUP_URL, AuthError, require_api_key, save_api_key
 
 
 def _read_input(arg: str) -> str:

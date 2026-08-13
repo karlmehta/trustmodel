@@ -20,7 +20,7 @@ import warnings
 from dataclasses import dataclass
 from typing import Optional
 
-from .dimensions import Dimension, ORDINAL_SCALE, ordinal_to_unit
+from .dimensions import ORDINAL_SCALE, Dimension, ordinal_to_unit
 
 
 @dataclass

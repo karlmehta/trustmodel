@@ -10,8 +10,9 @@ single 0–100 TrustScore. Local-first: uses your own LLM as the judge, no accou
 
 from __future__ import annotations
 
+from collections.abc import Iterable
 from dataclasses import dataclass, field
-from typing import Iterable, List, Optional
+from typing import List, Optional
 
 from .auth import get_api_key, require_api_key
 from .dimensions import BY_KEY, DIMENSION_KEYS, grade
