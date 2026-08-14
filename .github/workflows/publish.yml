@@ -1,11 +1,10 @@
 name: Publish to PyPI
 
 # Deploy trustmodel-local to PyPI when a GitHub Release is published.
-# Uses PyPI Trusted Publishing (OIDC) — no API token stored in the repo.
-# One-time setup on PyPI: add a Trusted Publisher for project "trustmodel-local"
-#   owner: karlmehta · repo: trustmodel · workflow: publish.yml · environment: pypi
-# (Alternatively, delete the `permissions:`/OIDC and add a PYPI_API_TOKEN secret +
-#  `with: password: ${{ secrets.PYPI_API_TOKEN }}` to the publish step.)
+# Auth: PYPI_API_TOKEN repo secret (a token scoped to the owner's personal PyPI
+# account, which holds the `trustmodel-local` project — NOT the pdxlab `trustmodel`
+# full SDK). To switch to Trusted Publishing later, drop `with: password` and add
+# `permissions: id-token: write` + a PyPI trusted-publisher for this workflow.
 
 on:
   release:
@@ -15,9 +14,6 @@ on:
 jobs:
   publish:
     runs-on: ubuntu-latest
-    environment: pypi
-    permissions:
-      id-token: write        # required for trusted publishing
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -31,3 +27,5 @@ jobs:
         run: ls -l dist/ && python -m pip install --upgrade twine && twine check dist/*
       - name: Publish
         uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          password: ${{ secrets.PYPI_API_TOKEN }}
